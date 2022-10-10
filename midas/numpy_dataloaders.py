@@ -22,7 +22,7 @@ class NumpyDataLoader(LambdaDataLoader):
                                      transform_f=transform_f,
                                      python_iterable=self.python_iterable,
                                      python_iterable_n_samples=self.python_iterable_n_samples,
-                                     transformation_tracker=self._transformation_tracker[:] + ["polydl.NumpyDataLoader.lambda_transformation"])
+                                     transformation_tracker=self._transformation_tracker[:] + ["midas.NumpyDataLoader.lambda_transformation"])
     
 
 class TfNumpyConverterDataLoader(NumpyDataLoader):

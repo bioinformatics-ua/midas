@@ -14,7 +14,7 @@ def test_simple_conversion():
     dataloader = dataloader.to_jax()
     
     mock_transformation = ["tf.data.Dataset.from_generator",
-                           "polydl.DataLoader.to_jax"]
+                           "midas.DataLoader.to_jax"]
     
     for data in dataloader:
         #verify every element
@@ -39,7 +39,7 @@ def test_simple_batch_conversion():
     
     mock_transformation = ["tf.data.Dataset.from_generator",
                            "tf.data.Dataset.batch",
-                           "polydl.DataLoader.to_jax"]
+                           "midas.DataLoader.to_jax"]
     
     for data in dataloader:
         #verify every element
@@ -75,9 +75,9 @@ def test_simple_batch_conversion_w_lambda():
     
     mock_transformation = ["tf.data.Dataset.from_generator",
                            "tf.data.Dataset.batch",
-                           "polydl.DataLoader.to_jax",
-                           "polydl.JaxDataLoader.lambda_transformation",
-                           "polydl.JaxDataLoader.lambda_transformation"]
+                           "midas.DataLoader.to_jax",
+                           "midas.JaxDataLoader.lambda_transformation",
+                           "midas.JaxDataLoader.lambda_transformation"]
     
     for data in dataloader:
         #verify every element
@@ -108,8 +108,8 @@ def test_simple_batch_conversion_w_shard():
     
     mock_transformation = ["tf.data.Dataset.from_generator",
                            "tf.data.Dataset.batch",
-                           "polydl.DataLoader.to_jax",
-                           "polydl.JaxDataLoader.shard"]
+                           "midas.DataLoader.to_jax",
+                           "midas.JaxDataLoader.shard"]
     
     for data in dataloader:
         #verify every element
@@ -137,8 +137,8 @@ def test_simple_batch_conversion_w_shard_fixedvalue():
     
     mock_transformation = ["tf.data.Dataset.from_generator",
                            "tf.data.Dataset.batch",
-                           "polydl.DataLoader.to_jax",
-                           "polydl.JaxDataLoader.shard"]
+                           "midas.DataLoader.to_jax",
+                           "midas.JaxDataLoader.shard"]
     
     for data in dataloader:
         #verify every element
@@ -170,9 +170,9 @@ def test_simple_batch_conversion_w_shard_prefetch():
         
         mock_transformation = ["tf.data.Dataset.from_generator",
                                 "tf.data.Dataset.batch",
-                                "polydl.DataLoader.to_jax",
-                                "polydl.JaxDataLoader.shard",
-                                "polydl.JaxDataLoader.prefetch_to_devices"]
+                                "midas.DataLoader.to_jax",
+                                "midas.JaxDataLoader.shard",
+                                "midas.JaxDataLoader.prefetch_to_devices"]
         
         for data in dataloader:
             #verify every element

@@ -72,7 +72,7 @@ class DataLoader(GenericDataLoader):
     def __init__(self, 
                  python_iterable,
                  python_iterable_n_samples=None,
-                 input_signature=None,
+                 output_signature=None,
                  infer_k=3,
                  transformation_tracker:List[str] = None,
                  input_dataset=None):
@@ -81,15 +81,15 @@ class DataLoader(GenericDataLoader):
                          python_iterable_n_samples=python_iterable_n_samples,
                          transformation_tracker=transformation_tracker)
         
-        self.input_signature = input_signature
+        self.output_signature = output_signature
         
         if input_dataset is None:
             # if not available, try to automaticly infer the shape of the generator by looking at K samples
-            if self.input_signature is None:
-                self.input_signature = convert_in_Tensor_spec(*find_dtype_and_shapes(python_iterable(), k=infer_k))
+            if self.output_signature is None:
+                self.output_signature = convert_in_Tensor_spec(*find_dtype_and_shapes(python_iterable(), k=infer_k))
                 
             _tf_ds = tf.data.Dataset.from_generator(python_iterable, 
-                                                    output_signature=self.input_signature)
+                                                    output_signature=self.output_signature)
             # add this transformation
             self._transformation_tracker.append("tf.data.Dataset.from_generator")
             
@@ -112,7 +112,7 @@ class DataLoader(GenericDataLoader):
             new_input_dataset = getattr(self.input_dataset, name)(*args, **kwargs)
             new_dl = DataLoader(python_iterable=self.python_iterable,
                                 python_iterable_n_samples=self.python_iterable_n_samples,
-                                input_signature=self.input_signature,
+                                output_signature=self.output_signature,
                                 transformation_tracker = self._transformation_tracker[:] + [f"tf.data.Dataset.{name}"],
                                 input_dataset=new_input_dataset)
             return new_dl
@@ -130,21 +130,21 @@ class DataLoader(GenericDataLoader):
         return TfJaxConverterDataLoader(input_dataset=self.input_dataset,
                              python_iterable=self.python_iterable,
                              python_iterable_n_samples=self.python_iterable_n_samples,
-                             transformation_tracker=self._transformation_tracker[:] + ["polydl.DataLoader.to_jax"])
+                             transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_jax"])
         
     def to_numpy(self):
 
         return TfNumpyConverterDataLoader(input_dataset=self.input_dataset,
                              python_iterable=self.python_iterable,
                              python_iterable_n_samples=self.python_iterable_n_samples,
-                             transformation_tracker=self._transformation_tracker[:] + ["polydl.DataLoader.to_numpy"])
+                             transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_numpy"])
         
     def to_torch(self):
         
         return TfTorchConverterDataLoader(input_dataset=self.input_dataset,
                              python_iterable=self.python_iterable,
                              python_iterable_n_samples=self.python_iterable_n_samples,
-                             transformation_tracker=self._transformation_tracker[:] + ["polydl.DataLoader.to_torch"])
+                             transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_torch"])
         
     def to_lambdaDataLoader(self, new_dl_class):
         return new_dl_class(input_dataset=self.input_dataset,

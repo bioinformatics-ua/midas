@@ -21,21 +21,21 @@ class JaxDataLoader(LambdaDataLoader):
                              transform_f=transform_f,
                              python_iterable=self.python_iterable,
                              python_iterable_n_samples=self.python_iterable_n_samples,
-                             transformation_tracker=self._transformation_tracker[:] + ["polydl.JaxDataLoader.lambda_transformation"])
+                             transformation_tracker=self._transformation_tracker[:] + ["midas.JaxDataLoader.lambda_transformation"])
     
     def prefetch_to_devices(self, size=2):
         return JaxPrefetchToDevicesDataLoader(input_dataset=self, 
                                               size=size,
                                               python_iterable=self.python_iterable,
                                               python_iterable_n_samples=self.python_iterable_n_samples,
-                                              transformation_tracker=self._transformation_tracker[:] + ["polydl.JaxDataLoader.prefetch_to_devices"])
+                                              transformation_tracker=self._transformation_tracker[:] + ["midas.JaxDataLoader.prefetch_to_devices"])
     
     def shard(self, devices:int=None):
         return JaxShardDataLoaders(input_dataset=self, 
                                    devices=devices,
                                    python_iterable=self.python_iterable,
                                    python_iterable_n_samples=self.python_iterable_n_samples,
-                                   transformation_tracker=self._transformation_tracker[:] + ["polydl.JaxDataLoader.shard"])
+                                   transformation_tracker=self._transformation_tracker[:] + ["midas.JaxDataLoader.shard"])
 
 class TfJaxConverterDataLoader(JaxDataLoader):
     def __init__(self, 

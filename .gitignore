@@ -1,3 +1,6 @@
-__pychace__
+__pycache__
 *.ipynb
 pytest_cache
+.eggs
+build
+MultI_framework_DataloAderS.egg-info
