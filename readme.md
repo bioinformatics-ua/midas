@@ -90,9 +90,9 @@ Additionally, dynamic new conversion can be added by extending `LambdaDataLoader
 
 ## How MIDAS automatically infer the output_signature of a python_iterable?
 
-When no `output_signature` is specified, the _midas.DataLoader_ will automatically infer the correct `output_signature` from the samples of the python iterable. For that, a specific number of samples are gathered from the python iterable, which is specified by the `infer_k=3` argument. So, by default, the DataLoader samples 3 instances of the python iterable and then each value of its dictionary is automatically converted to a tf.Tensor. From here we catch the shape and the data type of each dictionary value. Then we perform the same procedure on the remainder of the samples and at each step, we verify its consistency with the previous discover data type and shape. If the data type changes, then it's an Error. On the other hand, if the shape changes it means that the data has a variable length, which is automatically handled by assigning the None shape.
+When no `output_signature` is specified, the _midas.DataLoader_ will automatically infer the correct `output_signature` from the samples of the python iterable. For that, a specific number of samples are gathered from the python iterable, which are specified by the `infer_k=3` argument. So, by default, the DataLoader consumes 3 samples from the python iterable and then the values of each sample are automatically converted to a tf.Tensor, which we use to extract the associated data type and shape. Next, a consistency check is performed to ensure that the values from different samples follow the same data type and shape. If the data type differs, then it's an Error. On the other hand, if the shape differs it means that the data has a variable length, which is automatically handled by assigning the None shape instead of a fixed number.
 
-Consider this fixed size example first:
+Consider this example with fixed size data first:
 ```python
 from midas import DataLoader
 
@@ -104,7 +104,7 @@ dl = DataLoader(dummy_data_generator)
 dl.output_signature
 >>> {'x': TensorSpec(shape=(), dtype=tf.int32, name='x_input'), 'y': TensorSpec(shape=(), dtype=tf.int32, name='y_input')}
 ```
-Then consider this variable size example:
+Then consider this example, where the values of `x` randomly change:
 ```python
 from midas import DataLoader
 import random
@@ -120,7 +120,45 @@ dl.output_signature
 
 Here, since `x` is represented as a list that ranges from 1 element to 5 elements, the _midas.DataLoader_ detected an inconsistency in the shape sizes, hence making the assumption that must be a Tensor with variable length. Therefore, it has represented with an unknown shape (None,).
 
-Furthermore, `infer_k` controls how many samples are consumed in order to infer the correct shape. For performance reasons the default value is low (3), which may produce some errors on datasets where data with variable length is rare since the DataLoader will only detect this if one of the first three samples has a different shape. So during this case, consider increasing the value of `infer_k`. As an extreme resource setting, `infer_k=-1` will force the DataLoader to check the shapes of every sample on the python iterable.
+Furthermore, `infer_k` controls how many samples are consumed in order to infer the correct shape. For performance reasons the default value is low (3), which may produce some errors on datasets where data with variable length is rare since the DataLoader will only detect this if one of the first three samples has a different shape. So for cases like that, consider increasing the value of `infer_k`. As an extreme resource setting, `infer_k=-1` will force the DataLoader to check the shapes of every sample on the python iterable.
+
+Consider the following example that addresses this issue:
+```python
+from midas import DataLoader
+import random
+
+def dummy_data_generator():
+    for i in range(3): # three samples where x is a list with two elements
+        yield {"x": [i for _ in range(2)], "y": i*3}
+    for i in range(5): # more five samples where x is a list with two elements
+        yield {"x": [i for _ in range(3)], "y": i*3}
+
+dl = DataLoader(dummy_data_generator)
+dl.output_signature
+>>> {'x': TensorSpec(shape=(2,), dtype=tf.int32, name='x_input'), 'y': TensorSpec(shape=(), dtype=tf.int32, name='y_input')}
+for data in dl:
+    pass
+>>> TypeError: `generator` yielded an element of shape (3,) where an element of shape (2,) was expected.
+```
+In the above example, since the three first samples have the same length, the _midas.DataLoader_ will infer that `x` has shape `(2,)`. However, the next samples will have a different shape, which will result in a Error during coutch by the tf.data.Dataset. The main problem is that the default value of `infer_k` is set to 3, which in this example was not enough to detect `x` has variable lenght. To fix this we can increse the infer_k value as shown:
+```python
+from midas import DataLoader
+import random
+
+def dummy_data_generator():
+    for i in range(3): # three samples where x is a list with two elements
+        yield {"x": [i for _ in range(2)], "y": i*3}
+    for i in range(5): # more five samples where x is a list with two elements
+        yield {"x": [i for _ in range(3)], "y": i*3}
+
+dl = DataLoader(dummy_data_generator, infer_k=5)
+dl.output_signature
+>>> {'x': TensorSpec(shape=(None,), dtype=tf.int32, name='x_input'), 'y': TensorSpec(shape=(), dtype=tf.int32, name='y_input')}
+for data in dl:
+    pass
+data
+>>> {'x': <tf.Tensor: shape=(3,), dtype=int32, numpy=array([4, 4, 4], dtype=int32)>, 'y': <tf.Tensor: shape=(), dtype=int32, numpy=12>}
+```
 
 ## Additional utility provided by MIDAS
 Besides handling the DataLoaders conversions, MIDAS also adds some utility functions like:
@@ -152,3 +190,6 @@ Besides handling the DataLoaders conversions, MIDAS also adds some utility funct
  'midas.JaxDataLoader.shard', 
  'midas.JaxDataLoader.prefetch_to_devices']
 ```
+## Package and code structure
+
+![Class diagram](./img/classDiagram.png)
