@@ -41,37 +41,6 @@ Output:
                      [ 822, 2283,  126, 2811, 1410]], dtype=int32)}
 ```
 
-### Additional utility provided by MIDAS
-Besides handling the DataLoaders conversions, MIDAS also adds some utility functions like:
-
-`get_python_iterator_n_samples` will return the number of samples output by the python iterable, if this value is not specified during the initialization of a _midas.DataLoader_ would be inferred by automatically transversing the python iterable. Therefore, do not call `get_python_iterator_n_samples` if your python iterable does not stop.
-```
-# continuation with the jdl created in the previous example
->>> jdl.get_python_iterator_n_samples()
-1000
-```
-
-`get_n_samples` will return the number of samples output by the DataLoader. Note that this number will differ from the get_python_iterator_n_samples if any data aggregation was performed. For instance, in this case, we are using the `.batch(10)` transformation that aggregates 10 sequential samples into one. Therefore, the current value for get_n_samples would be `jdl.get_python_iterator_n_samples()/10`.
-```
-# continuation with the jdl created in the previous example
->>> jdl.get_n_samples()
-100
-```
-
-`get_transformation_list` returns a list with all the transformations that were applied to the current DataLoader. For now _midas.DataLoder_ does not take advantage of this information, but in a future version, this can be the starting point to implement a DataLoader chain optimizer that rearranges the specified transformations into a more suitable order of execution that maximizes performance.
-```
-# continuation with the jdl created in the previous example
->>> jdl.get_transformation_list()
-['tf.data.Dataset.from_generator', 
- 'tf.data.Dataset.map', 
- 'tf.data.Dataset.cache', 
- 'tf.data.Dataset.shuffle', 
- 'tf.data.Dataset.batch', 
- 'midas.DataLoader.to_jax', 
- 'midas.JaxDataLoader.shard', 
- 'midas.JaxDataLoader.prefetch_to_devices']
-```
-
 ## How to install
 
 From pypi
@@ -150,3 +119,34 @@ dl.output_signature
 Here, since `x` is represented as a list that ranges from 1 element to 5 elements, the _midas.DataLoader_ detected an inconsistency in the shape sizes, hence making the assumption that must be a Tensor with variable length. Therefore, it has represented with an unknown shape (None,).
 
 Furthermore, `infer_k` controls how many samples are consumed in order to infer the correct shape. For performance reasons the default value is low (3), which may produce some errors on datasets where data with variable length is rare since the DataLoader will only detect this if one of the first three samples has a different shape. So during this case, consider increasing the value of `infer_k`. As an extreme resource setting, `infer_k=-1` will force the DataLoader to check the shapes of every sample on the python iterable.
+
+## Additional utility provided by MIDAS
+Besides handling the DataLoaders conversions, MIDAS also adds some utility functions like:
+
+`get_python_iterator_n_samples` will return the number of samples output by the python iterable, if this value is not specified during the initialization of a _midas.DataLoader_ would be inferred by automatically transversing the python iterable. Therefore, do not call `get_python_iterator_n_samples` if your python iterable does not stop.
+```
+# continuation with the jdl created in the previous example
+>>> jdl.get_python_iterator_n_samples()
+1000
+```
+
+`get_n_samples` will return the number of samples output by the DataLoader. Note that this number will differ from the get_python_iterator_n_samples if any data aggregation was performed. For instance, in this case, we are using the `.batch(10)` transformation that aggregates 10 sequential samples into one. Therefore, the current value for get_n_samples would be `jdl.get_python_iterator_n_samples()/10`.
+```
+# continuation with the jdl created in the previous example
+>>> jdl.get_n_samples()
+100
+```
+
+`get_transformation_list` returns a list with all the transformations that were applied to the current DataLoader. For now _midas.DataLoder_ does not take advantage of this information, but in a future version, this can be the starting point to implement a DataLoader chain optimizer that rearranges the specified transformations into a more suitable order of execution that maximizes performance.
+```
+# continuation with the jdl created in the previous example
+>>> jdl.get_transformation_list()
+['tf.data.Dataset.from_generator', 
+ 'tf.data.Dataset.map', 
+ 'tf.data.Dataset.cache', 
+ 'tf.data.Dataset.shuffle', 
+ 'tf.data.Dataset.batch', 
+ 'midas.DataLoader.to_jax', 
+ 'midas.JaxDataLoader.shard', 
+ 'midas.JaxDataLoader.prefetch_to_devices']
+```
