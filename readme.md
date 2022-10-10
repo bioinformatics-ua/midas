@@ -53,7 +53,7 @@ From this repository (last commit in the master branch)
 pip install git+https://github.com/bioinformatics-ua/midas.git
 ```
 
-The only hard requirement of MIDAS is the installation of tensorflow if not yet installed. Although it is not required, if we aim to convert the tensors to other framework it is expectable that framwork would be already installed. 
+The only hard requirement of MIDAS is the installation of tensorflow if not yet installed. Although it is not required, if you are aiming to convert the tensors to another framework it is expectable that framwork would be already installed. 
 
 ## How this works?
 
