@@ -1,0 +1,3 @@
+__pychace__
+*.ipynb
+pytest_cache
