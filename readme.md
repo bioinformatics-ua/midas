@@ -76,7 +76,7 @@ There are three basic steps to build DataLoaders with MIDAS:
 
 **But I am already a TF user, why should I care?**. Well, MIDAS also offers the additional functionality of automatically converting python iterable (even for data with variable lengths, like text!) to _tf.data.Dataset_. For that it automatically infers the _output_signature_ produced by your iterable, making it easier to build DataLoaders from generators.
 
-# Thecnical stuff
+# Technical stuff
 
 ## Built-in tensor conversions
 
