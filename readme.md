@@ -53,6 +53,8 @@ From this repository (last commit in the master branch)
 pip install git+https://github.com/bioinformatics-ua/midas.git
 ```
 
+The only hard requirement of MIDAS is the installation of tensorflow if not yet installed. Although it is not required, if we aim to convert the tensors to other framework it is expectable that framwork would be already installed. 
+
 ## How this works?
 
 **TL;DR:** Python iterable -> _tf.data.Dataset_ -> _tf.data.Dataset_ data transformations -> DLPack -> Another DL framework (like JAX or PyTorch)
@@ -68,7 +70,7 @@ There are three basic steps to build DataLoaders with MIDAS:
 
 **Second reason, it is FAST!**, MIDAS is a direct wrapper of the _tf.data.Dataset_ class and its transformation, which converts all of the defined processing steps into a computation graph on CPU, then thanks to the _DLPack_ the conversion to other DL frameworks is achieved with almost no overhead.
 
-**Third reason, it is highly extensible**, thanks to a modular coding approach new Deep Learning frameworks can be added following a functional programming style. For that, the user just needs to call `.to_lambdaDataLoader(NEW_CLASS_CONVERTER_DATALOADER)`, and implement a new class that extends `LambdaDataLoader` (Note: the DLPack should be used for fast conversion between different frameworks Tensors, however, this is not required).
+**Third reason, it is highly extensible**, thanks to a modular coding approach new Deep Learning frameworks can be added following a functional programming style. For that, the user just needs to call `.to_lambdaDataLoader(NEW_CLASS_CONVERTER_DATALOADER)`, and implement a new class that extends `midas.LambdaDataLoader` (Note: the DLPack should be used for fast conversion between different frameworks Tensors, however, this is not required).
 
 **Additional functionality for other DL frameworks**, besides the framework conversion, MIDAS also expose framework-specific transformations. For instance, when converting to a `JaxDataLoader` it is also possible to follow the dataloader with the `shard` and `prefetch_to_devices` transformations, which automatically shards and distributes the data to the best accelerators devices found by _jax_.
 
@@ -91,7 +93,7 @@ Additionally, dynamic new conversion can be added by extending `LambdaDataLoader
 When no `output_signature` is specified, the _midas.DataLoader_ will automatically infer the correct `output_signature` from the samples of the python iterable. For that, a specific number of samples are gathered from the python iterable, which is specified by the `infer_k=3` argument. So, by default, the DataLoader samples 3 instances of the python iterable and then each value of its dictionary is automatically converted to a tf.Tensor. From here we catch the shape and the data type of each dictionary value. Then we perform the same procedure on the remainder of the samples and at each step, we verify its consistency with the previous discover data type and shape. If the data type changes, then it's an Error. On the other hand, if the shape changes it means that the data has a variable length, which is automatically handled by assigning the None shape.
 
 Consider this fixed size example first:
-```
+```python
 from midas import DataLoader
 
 def dummy_data_generator():
@@ -103,7 +105,7 @@ dl.output_signature
 >>> {'x': TensorSpec(shape=(), dtype=tf.int32, name='x_input'), 'y': TensorSpec(shape=(), dtype=tf.int32, name='y_input')}
 ```
 Then consider this variable size example:
-```
+```python
 from midas import DataLoader
 import random
 
@@ -124,21 +126,21 @@ Furthermore, `infer_k` controls how many samples are consumed in order to infer 
 Besides handling the DataLoaders conversions, MIDAS also adds some utility functions like:
 
 `get_python_iterator_n_samples` will return the number of samples output by the python iterable, if this value is not specified during the initialization of a _midas.DataLoader_ would be inferred by automatically transversing the python iterable. Therefore, do not call `get_python_iterator_n_samples` if your python iterable does not stop.
-```
+```python
 # continuation with the jdl created in the previous example
 >>> jdl.get_python_iterator_n_samples()
 1000
 ```
 
 `get_n_samples` will return the number of samples output by the DataLoader. Note that this number will differ from the get_python_iterator_n_samples if any data aggregation was performed. For instance, in this case, we are using the `.batch(10)` transformation that aggregates 10 sequential samples into one. Therefore, the current value for get_n_samples would be `jdl.get_python_iterator_n_samples()/10`.
-```
+```python
 # continuation with the jdl created in the previous example
 >>> jdl.get_n_samples()
 100
 ```
 
 `get_transformation_list` returns a list with all the transformations that were applied to the current DataLoader. For now _midas.DataLoder_ does not take advantage of this information, but in a future version, this can be the starting point to implement a DataLoader chain optimizer that rearranges the specified transformations into a more suitable order of execution that maximizes performance.
-```
+```python
 # continuation with the jdl created in the previous example
 >>> jdl.get_transformation_list()
 ['tf.data.Dataset.from_generator', 
