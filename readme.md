@@ -72,7 +72,7 @@ There are three basic steps to build DataLoaders with MIDAS:
 
 **Third reason, it is highly extensible**, thanks to a modular coding approach new Deep Learning frameworks can be added following a functional programming style. For that, the user just needs to call `.to_lambdaDataLoader(NEW_CLASS_CONVERTER_DATALOADER)`, and implement a new class that extends `midas.LambdaDataLoader` (Note: the DLPack should be used for fast conversion between different frameworks Tensors, however, this is not required).
 
-**Additional functionality for other DL frameworks**, besides the framework conversion, MIDAS also expose framework-specific transformations. For instance, when converting to a `JaxDataLoader` it is also possible to follow the dataloader with the `shard` and `prefetch_to_devices` transformations, which automatically shards and distributes the data to the best accelerators devices found by _jax_.
+**Additional functionality for other DL frameworks**, besides the framework conversion, MIDAS also exposes framework-specific transformations. For instance, when converting to a `JaxDataLoader` it is possible to follow the dataloader with the `shard` and `prefetch_to_devices` transformations, which automatically shards and distributes the data to the best accelerators devices found by _jax_.
 
 **But I am already a TF user, why should I care?**. Well, MIDAS also offers the additional functionality of automatically converting python iterable (even for data with variable lengths, like text!) to _tf.data.Dataset_. For that it automatically infers the _output_signature_ produced by your iterable, making it easier to build DataLoaders from generators.
 
@@ -118,9 +118,9 @@ dl.output_signature
 >>> {'x': TensorSpec(shape=(None,), dtype=tf.int32, name='x_input'), 'y': TensorSpec(shape=(), dtype=tf.int32, name='y_input')}
 ```
 
-Here, since `x` is represented as a list that ranges from 1 element to 5 elements, the _midas.DataLoader_ detected an inconsistency in the shape sizes, hence making the assumption that must be a Tensor with variable length. Therefore, it has represented with an unknown shape (None,).
+Here, since `x` is represented as a list that ranges from 1 element to 5 elements, the _midas.DataLoader_ detected an inconsistency in the shape size, making the assumption that must be a Tensor with variable length. Therefore, it has represented with an unknown shape (None,).
 
-Furthermore, `infer_k` controls how many samples are consumed in order to infer the correct shape. For performance reasons the default value is low (3), which may produce some errors on datasets where data with variable length is rare since the DataLoader will only detect this if one of the first three samples has a different shape. So for cases like that, consider increasing the value of `infer_k`. As an extreme resource setting, `infer_k=-1` will force the DataLoader to check the shapes of every sample on the python iterable.
+Furthermore, `infer_k` controls how many samples are consumed to infer the correct shape. For performance reasons, the default value is low (3), which may produce some errors on datasets where data with variable length is rare since the DataLoader will only detect this if one of the first three samples has a different shape. So for cases like that, consider increasing the value of `infer_k`. As an extreme resource setting, `infer_k=-1` will force the DataLoader to check the shapes of every sample on the python iterable.
 
 Consider the following example that addresses this issue:
 ```python
@@ -140,7 +140,7 @@ for data in dl:
     pass
 >>> TypeError: `generator` yielded an element of shape (3,) where an element of shape (2,) was expected.
 ```
-In the above example, since the three first samples have the same length, the _midas.DataLoader_ will infer that `x` has shape `(2,)`. However, the next samples will have a different shape, which will result in a Error during coutch by the tf.data.Dataset. The main problem is that the default value of `infer_k` is set to 3, which in this example was not enough to detect `x` has variable lenght. To fix this we can increse the infer_k value as shown:
+In the above example, since the three first samples have the same length, the _midas.DataLoader_ will infer that `x` has shape `(2,)`. However, the following samples will have a different shape, resulting in an Error coutch by the tf.data.Dataset. The main problem is that the default value of `infer_k` is set to 3, which in this example was not enough to detect that `x` has a variable lenght. To fix this, we can simply increase the infer_k value as shown:
 ```python
 from midas import DataLoader
 import random
@@ -177,7 +177,7 @@ Besides handling the DataLoaders conversions, MIDAS also adds some utility funct
 100
 ```
 
-`get_transformation_list` returns a list with all the transformations that were applied to the current DataLoader. For now _midas.DataLoder_ does not take advantage of this information, but in a future version, this can be the starting point to implement a DataLoader chain optimizer that rearranges the specified transformations into a more suitable order of execution that maximizes performance.
+`get_transformation_list` returns a list with all the transformations applied to the current DataLoader. For now, _midas.DataLoder_ does not take advantage of this information. However, in a future version, this can be the starting point to implement a DataLoader chain optimizer that rearranges the specified transformations into a more proper order of execution that maximizes performance.
 ```python
 # continuation with the jdl created in the previous example
 >>> jdl.get_transformation_list()
