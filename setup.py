@@ -15,6 +15,6 @@ setup(
     license='Apache License 2.0',
     install_requires=requirements,
     setup_requires=['pytest-runner'],
-    tests_require=['pytest','tensorflow','jax','torch'],
+    tests_require=['pytest','tensorflow','jax','torch', 'tensorflow_datasets'],
     test_suite='tests',
 )

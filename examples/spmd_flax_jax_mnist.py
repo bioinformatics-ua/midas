@@ -66,8 +66,7 @@ if __name__ == '__main__':
         batch['image'] = (batch['image'] - 0.5) / 0.5  # tanh range is -1, 1
         batch['label'] = tf.cast(batch['label'], tf.int32)
         return batch
-    
-    
+
     STEPS_PER_EPOCH = len(mnist_data["train"]) // BATCH_SIZE
     
     train_dl = DataLoader(mnist_train) \
@@ -77,7 +76,7 @@ if __name__ == '__main__':
                      .batch(BATCH_SIZE, drop_remainder=True) \
                      .to_jax() \
                      .shard() \
-                     .prefetch_to_devices()    
+                     .prefetch_to_devices()
     
     STEPS_PER_EPOCH_TEST = len(mnist_data["test"]) // BATCH_SIZE
     
