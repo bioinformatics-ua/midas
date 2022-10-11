@@ -56,6 +56,8 @@ def preprocess(batch):
 
 mnist_data = tfds.load('mnist')
 
+# Here since mnist_data["train"] is already a tf.data.Dataset, the DataLoader will use it
+# instead of rebuilding a new one
 train_dl = DataLoader(mnist_data["train"]) \
                      .map(preprocess, num_parallel_calls=tf.data.AUTOTUNE) \
                      .cache() \
@@ -65,7 +67,7 @@ train_dl = DataLoader(mnist_data["train"]) \
                      .shard() \
                      .prefetch_to_devices()
 
-for data in train_dl:
+for step, batch_train in enumerate(train_dl): 
     # call the train_step here with the already prepared data
     ...
 ```
