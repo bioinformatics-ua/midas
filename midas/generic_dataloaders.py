@@ -23,6 +23,9 @@ class _FunctionIterable:
     def __iter__(self):
         return iter(self.function_generator())
     
+    def is_class(self):
+        return False
+    
     def __call__(self):
         return self.__iter__()
     
@@ -31,6 +34,9 @@ class _ClassIterable:
     def __init__(self,
                  class_iterable) -> None:
         self.class_iterable = class_iterable
+        
+    def is_class(self):
+        return True
         
     def __iter__(self):
         return iter(self.class_iterable)

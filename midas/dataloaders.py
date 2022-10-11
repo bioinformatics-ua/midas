@@ -85,16 +85,20 @@ class DataLoader(GenericDataLoader):
         
         if input_dataset is None:
             # if not available, try to automaticly infer the shape of the generator by looking at K samples
-            if self.output_signature is None:
-                self.output_signature = convert_in_Tensor_spec(*find_dtype_and_shapes(self.python_iterable, k=infer_k))
+            if self.python_iterable.is_class() and isinstance(self.python_iterable.class_iterable, tf.data.Dataset):
+                self._set_input_dataset(self.python_iterable.class_iterable)
+                self._transformation_tracker.append("tf.data.Dataset")
+            else:
+                if self.output_signature is None:
+                    self.output_signature = convert_in_Tensor_spec(*find_dtype_and_shapes(self.python_iterable, k=infer_k))
+                    
+                _tf_ds = tf.data.Dataset.from_generator(self.python_iterable, 
+                                                        output_signature=self.output_signature)
+                # add this transformation
+                self._transformation_tracker.append("tf.data.Dataset.from_generator")
                 
-            _tf_ds = tf.data.Dataset.from_generator(self.python_iterable, 
-                                                    output_signature=self.output_signature)
-            # add this transformation
-            self._transformation_tracker.append("tf.data.Dataset.from_generator")
-            
-            # this is equivalent to self.input_dataset=_tf_ds
-            self._set_input_dataset(_tf_ds)
+                # this is equivalent to self.input_dataset=_tf_ds
+                self._set_input_dataset(_tf_ds)
         else:
             self._set_input_dataset(input_dataset)
         

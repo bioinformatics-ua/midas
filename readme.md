@@ -41,6 +41,35 @@ Output:
                      [ 822, 2283,  126, 2811, 1410]], dtype=int32)}
 ```
 
+Since MIDAS work directaly with python iterables, you can use any function or class iterable to instantiate a _midas.DataLoader_. For instance, we can load the minst dataset from tensorflow_datasets to build a dataset that converts and shard the samples to jax:
+
+```python
+import tensorflow as tf
+import tensorflow_datasets as tfds
+from midas import DataLoader
+
+def preprocess(batch):
+        batch['image'] = tf.image.convert_image_dtype(batch['image'], tf.float32)
+        batch['image'] = (batch['image'] - 0.5) / 0.5  # tanh range is -1, 1
+        batch['label'] = tf.one_hot(batch['label'], 10)
+        return batch
+
+mnist_data = tfds.load('mnist')
+
+train_dl = DataLoader(mnist_data["train"]) \
+                     .map(preprocess, num_parallel_calls=tf.data.AUTOTUNE) \
+                     .cache() \
+                     .shuffle(5000) \
+                     .batch(128, drop_remainder=True) \
+                     .to_jax() \
+                     .shard() \
+                     .prefetch_to_devices()
+
+for data in train_dl:
+    # call the train_step here with the already prepared data
+    ...
+```
+
 ## How to install
 
 From pypi
