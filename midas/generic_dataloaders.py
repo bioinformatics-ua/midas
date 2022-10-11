@@ -22,6 +22,21 @@ class _FunctionIterable:
         
     def __iter__(self):
         return iter(self.function_generator())
+    
+    def __call__(self):
+        return self.__iter__()
+    
+class _ClassIterable:
+    
+    def __init__(self,
+                 class_iterable) -> None:
+        self.class_iterable = class_iterable
+        
+    def __iter__(self):
+        return iter(self.class_iterable)
+    
+    def __call__(self):
+        return self.__iter__()
 
 
 class GenericDataLoader(TransformationTracker):
@@ -34,7 +49,8 @@ class GenericDataLoader(TransformationTracker):
         if inspect.isgeneratorfunction(python_iterable):
             self.python_iterable = _FunctionIterable(python_iterable)
         else:
-            self.python_iterable = python_iterable
+            self.python_iterable = _ClassIterable(python_iterable)
+            
         self.python_iterable_n_samples = python_iterable_n_samples
         
     def _set_input_dataset(self, input_dataset):

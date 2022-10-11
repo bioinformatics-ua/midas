@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 import midas
 
 setup(
-    name='MultI-framework DataloAderS',
+    name='midas',
     packages=find_packages(include=['midas*']),
     version=midas.__version__,
     description='A multi-framework dataloaders powered by tensorflow.data.Dataset API',
