@@ -41,7 +41,7 @@ Output:
                      [ 822, 2283,  126, 2811, 1410]], dtype=int32)}
 ```
 
-Since MIDAS work directaly with python iterables, you can use any function or class iterable to instantiate a _midas.DataLoader_. For instance, we can load the minst dataset from tensorflow_datasets to build a dataset that converts and shard the samples to jax:
+Since MIDAS work directly with python iterable, you can use any function or class iterable to instantiate a midas.DataLoader. For instance, we can load the mnist dataset from tensorflow_datasets to build a dataset that converts and shard the samples to jax:
 
 ```python
 import tensorflow as tf
