@@ -7,6 +7,7 @@ import jax.numpy as jnp
 import jax
 from jaxlib.xla_extension import DeviceArray
 from jaxlib.xla_extension.pmap_lib import ShardedDeviceArray
+import tensorflow as tf
 
 def test_simple_conversion():
     
@@ -151,6 +152,35 @@ def test_simple_batch_conversion_w_shard_fixedvalue():
     # check last value
     assert int(jax.device_get(data["a"][-1,-1]))==99
     assert int(jax.device_get(data["b"][-1,-1]))==198
+    
+    for i,transformation in enumerate(dataloader.get_transformation_list()):
+        assert transformation==mock_transformation[i]
+        
+def test_simple_batch_conversion_w_shard_fixedvalue_w_skip_keys():
+    
+    number_of_devices=10
+    
+    dataloader = DataLoader(dict_gen)
+    dataloader = dataloader.batch(20)
+    dataloader = dataloader.to_jax(skip_keys={"b"})
+    dataloader = dataloader.shard(devices=number_of_devices)
+    
+    mock_transformation = ["tf.data.Dataset.from_generator",
+                           "tf.data.Dataset.batch",
+                           "midas.DataLoader.to_jax",
+                           "midas.JaxDataLoader.shard"]
+    
+    for data in dataloader:
+        #verify every element
+        assert isinstance(data["a"], DeviceArray)
+        assert isinstance(data["b"], tf.Tensor)
+        
+        assert data["a"].shape==(number_of_devices,20/number_of_devices)
+        assert data["b"].shape==(20,)
+        
+    # check last value
+    assert int(jax.device_get(data["a"][-1,-1]))==99
+    assert int(jax.device_get(data["b"][-1]))==198
     
     for i,transformation in enumerate(dataloader.get_transformation_list()):
         assert transformation==mock_transformation[i]

@@ -1,4 +1,4 @@
-from typing import List, Iterable
+from typing import List, Iterable, Set, Union
 import inspect
 
 class TransformationTracker:
@@ -139,6 +139,7 @@ class LambdaDataLoader(GenericDataLoader):
     def __init__(self,
                  input_dataset: Iterable,
                  python_iterable: Iterable,
+                 skip_keys: Union[Set,List]=[],
                  transform_f=None,
                  python_iterable_n_samples:int=None,
                  transformation_tracker:List[str] = None) -> None:
@@ -146,6 +147,7 @@ class LambdaDataLoader(GenericDataLoader):
                          python_iterable_n_samples=python_iterable_n_samples,
                          transformation_tracker=transformation_tracker)
         self.input_dataset = input_dataset
+        self.skip_keys=set(skip_keys) if isinstance(skip_keys, list) else skip_keys
         if transform_f is None:
             self.transform_f = lambda x:x
         else:
@@ -154,6 +156,14 @@ class LambdaDataLoader(GenericDataLoader):
     def _transform(self, data):
         return self.transform_f(data)
     
+    def _iter_transform(self, data):
+        """
+        Runs before the _transform method, used to ensure some
+        constrains before and after the transformation
+        """
+        data_to_skip_transform = {k:data.pop(k) for k in self.skip_keys}
+        return self._transform(data) | data_to_skip_transform
+    
     def __iter__(self):
         return _DataLoaderIterator(input_dataset=self.input_dataset,
-                                   transform_f=self._transform)
+                                   transform_f=self._iter_transform)

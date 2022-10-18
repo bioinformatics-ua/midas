@@ -84,12 +84,13 @@ class DataLoader(GenericDataLoader):
         self.output_signature = output_signature
         
         if input_dataset is None:
-            # if not available, try to automaticly infer the shape of the generator by looking at K samples
             if self.python_iterable.is_class() and isinstance(self.python_iterable.class_iterable, tf.data.Dataset):
+                # if the python_iterable is a tf.data.Dataset we will reuse it for efficient propose
                 self._set_input_dataset(self.python_iterable.class_iterable)
-                self._transformation_tracker.append("tf.data.Dataset")
+                self._transformation_tracker.append("tf.data.Dataset (passthrough)")
             else:
                 if self.output_signature is None:
+                    # if not available, try to automaticly infer the shape of the generator by looking at K samples
                     self.output_signature = convert_in_Tensor_spec(*find_dtype_and_shapes(self.python_iterable, k=infer_k))
                     
                 _tf_ds = tf.data.Dataset.from_generator(self.python_iterable, 
@@ -129,24 +130,28 @@ class DataLoader(GenericDataLoader):
     def get_transformation_list(self):
         return self._transformation_tracker
         
-    def to_jax(self):
+    def to_jax(self, skip_keys=[]):
 
         return TfJaxConverterDataLoader(input_dataset=self.input_dataset,
-                             python_iterable=self.python_iterable,
-                             python_iterable_n_samples=self.python_iterable_n_samples,
-                             transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_jax"])
+                                        python_iterable=self.python_iterable,
+                                        skip_keys=skip_keys,
+                                        python_iterable_n_samples=self.python_iterable_n_samples,
+                                        transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_jax"])
         
-    def to_numpy(self):
+    def to_numpy(self, skip_keys=[]):
 
         return TfNumpyConverterDataLoader(input_dataset=self.input_dataset,
                              python_iterable=self.python_iterable,
+                             skip_keys=skip_keys,
                              python_iterable_n_samples=self.python_iterable_n_samples,
                              transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_numpy"])
-        
-    def to_torch(self):
+    
+    # SUGGESTION add also a to_torch_dataloader, which will return a pytorch dataloader
+    def to_torch(self, skip_keys=[]):
         
         return TfTorchConverterDataLoader(input_dataset=self.input_dataset,
                              python_iterable=self.python_iterable,
+                             skip_keys=skip_keys,
                              python_iterable_n_samples=self.python_iterable_n_samples,
                              transformation_tracker=self._transformation_tracker[:] + ["midas.DataLoader.to_torch"])
         

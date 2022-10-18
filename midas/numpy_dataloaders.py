@@ -20,6 +20,7 @@ class NumpyDataLoader(LambdaDataLoader):
     def lambda_transformation(self, transform_f):
         return NumpyDataLoader(input_dataset=self, 
                                      transform_f=transform_f,
+                                     skip_keys=self.skip_keys,
                                      python_iterable=self.python_iterable,
                                      python_iterable_n_samples=self.python_iterable_n_samples,
                                      transformation_tracker=self._transformation_tracker[:] + ["midas.NumpyDataLoader.lambda_transformation"])
@@ -28,14 +29,10 @@ class NumpyDataLoader(LambdaDataLoader):
 class TfNumpyConverterDataLoader(NumpyDataLoader):
     def __init__(self, 
                  input_dataset,
-                 python_iterable: Iterable,
-                 python_iterable_n_samples:int=None,
-                 transformation_tracker:List[str] = None):
+                 **kwargs):
         
         super().__init__(input_dataset=input_dataset,
-                         python_iterable=python_iterable,
-                         python_iterable_n_samples=python_iterable_n_samples,
-                         transformation_tracker=transformation_tracker)
+                         **kwargs)
     
     def _transform(self, data):
         return { k:from_tf_to_np(v) for k,v in data.items() }
